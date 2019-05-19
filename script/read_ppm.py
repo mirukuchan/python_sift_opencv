@@ -5,15 +5,15 @@ import codecs
 import cv2
 import math
 
-local_address = '/Users/miruku/Downloads/pictures/sample_img1/Level1/'
+local_address = './sample_img/sample_img3/Level3/' 
 min_match_count = 10
 
 ### read ppm file
-img = Image.open(local_address+'1-003-1.ppm');
-im = np.array(img);
+# img = Image.open(local_address+'1-003-1.ppm');
+# im = np.array(img);
 
-cv_img1 = cv2.imread(local_address+'1-003-1.ppm')
-cv_img2 = cv2.imread(local_address+'1-003-2.ppm')
+cv_img1 = cv2.imread(local_address+'3-001-1.ppm')
+cv_img2 = cv2.imread(local_address+'3-001-2.ppm')
 
 #bgr to rgb
 cv_img1=cv2.cvtColor(cv_img1,cv2.COLOR_BGR2RGB)
