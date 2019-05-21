@@ -4,22 +4,29 @@ import numpy as np
 import codecs
 import cv2
 import math
+import datetime
 
-local_address = './sample_img/sample_img3/Level3/' 
+
+local_address = './sample_img/sample_img2/Level2/' 
 min_match_count = 10
 
 ### read ppm file
 # img = Image.open(local_address+'1-003-1.ppm');
 # im = np.array(img);
 
-cv_img1 = cv2.imread(local_address+'3-001-1.ppm')
-cv_img2 = cv2.imread(local_address+'3-001-2.ppm')
+
+
+cv_img1 = cv2.imread(local_address+'2-001-1.ppm')
+cv_img2 = cv2.imread(local_address+'2-001-2.ppm')
 
 #bgr to rgb
 cv_img1=cv2.cvtColor(cv_img1,cv2.COLOR_BGR2RGB)
 cv_img2=cv2.cvtColor(cv_img2,cv2.COLOR_BGR2RGB)
 # Initiate SIFT detector
 sift = cv2.xfeatures2d.SIFT_create()
+
+#record running time
+starttime = datetime.datetime.now()
 
 # find the keypoints and descriptors with SIFT
 kp1, des1 = sift.detectAndCompute(cv_img1, None)
@@ -66,6 +73,7 @@ draw_params = dict(matchColor = (0,255,0),
 
 
 
+
 cv_img3 = cv2.drawMatches(cv_img1, kp1, cv_img2, kp2, good, None, **draw_params)
 cv_img3 = cv_img3.astype("uint8")
 
@@ -76,6 +84,8 @@ cv_img3 = cv_img3.astype("uint8")
 # stitch
 result = cv2.warpPerspective(cv_img2, np.linalg.inv(M),(cv_img1.shape[1] + cv_img2.shape[1], cv_img2.shape[0]))
 result[0:cv_img1.shape[0], 0:cv_img1.shape[1]] = cv_img1
+
+
 
 #calculte (translationx, translationy), rotation, (scalex, scaley), shear) from homography  matrix
 
@@ -91,13 +101,48 @@ def getComponents(normalised_homography):
   p = math.sqrt(a*a + b*b)
   r = (a*e - b*d)/(p)
   q = (a*d+b*e)/(a*e - b*d)
+  
+  #keep two decimals
+  c = round(c,2)
+  f = round(f,2)
+  r = round(r,2)
+  p = round(p,2)
+  q = round(q,2)  
 
   translation = (c,f)
   scale = (p,r)
   shear = q
   theta = math.atan2(b,a)
 
+  theta = round(theta, 2)
+
   return (translation, theta, scale, shear)
+
+
+parameters = getComponents(M)
+
+# record running time
+endtime = datetime.datetime.now()
+timeInv = endtime - starttime
+
+print(timeInv)
+
+print(parameters)
+
+# write result to file
+with open('sample3.txt', 'w+') as f:
+  f.writelines([
+    'translationX: {0}\n'.format(parameters[0][0]),
+    'translationY: {0}\n'.format(parameters[0][1]),
+    "theta: {0}\n".format(parameters[1]),
+    "scaleX: {0}\n".format(parameters[2][0]),
+    "scaleY: {0}\n".format(parameters[2][1]),
+    "running time: {0}\n".format(timeInv)
+  ])
+
+#write picture to file
+result_img = Image.fromarray(result)
+result_img.save("result.jpg")
 
 # show pictures
 plt.figure(1)
@@ -111,9 +156,6 @@ plt.subplot(2,2,4)
 plt.imshow(result)
 plt.show()
 
-parameters = getComponents(M)
-
-print(parameters)
 
 
 
